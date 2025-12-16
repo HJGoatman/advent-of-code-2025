@@ -1,35 +1,30 @@
 defmodule AOC2025.Day01 do
   alias AOC2025.Day01.Dial
+  alias AOC2025.Day01.Rotation
 
   @starting_position 50
+  @behaviour AOCDay
 
-  def part_1() do
-    input = read_input()
+  @impl AOCDay
+  def part_1(input) do
     rotations = parse_input(input)
     initial_state = {@starting_position, 0}
     {_, times_at_zero} = rotations |> Enum.reduce(initial_state, &Dial.apply_rotation/2)
-    IO.puts(times_at_zero)
+    times_at_zero
   end
 
-  def part_2() do
-    input = read_input()
+  @impl AOCDay
+  def part_2(input) do
     rotations = parse_input(input)
     initial_state = {@starting_position, 0}
     {_, times_at_zero} = rotations |> Enum.reduce(initial_state, &Dial.apply_rotation_2/2)
-    IO.puts(times_at_zero)
-  end
-
-  defp read_input() do
-    priv_dir = :code.priv_dir(:aoc_2025)
-    input_filepath = Path.join([priv_dir, "inputs", "day_01.txt"])
-    {:ok, input} = File.read(input_filepath)
-    input
+    times_at_zero
   end
 
   defp parse_input(input) do
     String.split(input, "\n")
     |> Enum.filter(fn x -> x != "" end)
-    |> Enum.map(fn x -> __MODULE__.Rotation.parse(x) end)
+    |> Enum.map(fn x -> Rotation.parse(x) end)
   end
 end
 
