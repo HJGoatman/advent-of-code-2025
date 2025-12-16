@@ -98,7 +98,7 @@ defmodule AOC2025 do
   defp format_result({result, _}), do: inspect(result)
 
   defp load_input(_year, day, :example) do
-    path = Path.join(@inputs_dir, "day_#{pad(day)}-example.txt")
+    path = Path.join(@inputs_dir, "day_#{pad(day)}_example.txt")
     File.read!(path)
   end
 
