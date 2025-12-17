@@ -85,14 +85,14 @@ defmodule AOC2025 do
 
   defp timed(fun) do
     {time, result} = :timer.tc(fn -> fun.() end)
-    {result, div(time, 1000)}
+    {result, time}
   end
 
   defp time_ms({:skipped, _}), do: 0
   defp time_ms({_, ms}), do: ms
 
   defp ms(0), do: "0.0ms"
-  defp ms(ms) when is_integer(ms), do: "#{ms / 1000}ms"
+  defp ms(ms) when is_integer(ms), do: "#{ms}"
 
   defp format_result({:skipped, _}), do: "skipped"
   defp format_result({result, _}), do: inspect(result)
