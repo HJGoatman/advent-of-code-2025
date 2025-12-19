@@ -11,7 +11,7 @@ defmodule AOC2025.Utils.Grid do
           mod: module(),
           num_rows: non_neg_integer(),
           num_cols: non_neg_integer(),
-          values: list(String.Chars.t() | Parsable)
+          values: %{{non_neg_integer(), non_neg_integer()} => String.Chars.t() | Parsable}
         }
 
   def parse_grid(mod, input) do
@@ -30,9 +30,13 @@ defmodule AOC2025.Utils.Grid do
     else
       values =
         splits
-        |> Enum.flat_map(fn line ->
-          line |> String.graphemes() |> Enum.map(&mod.parse/1)
+        |> Enum.with_index(fn line, y ->
+          line
+          |> String.graphemes()
+          |> Enum.with_index(fn element, x -> {{x, y}, mod.parse(element)} end)
         end)
+        |> Enum.concat()
+        |> Map.new()
 
       {:ok, %__MODULE__{mod: mod, values: values, num_rows: num_rows, num_cols: num_cols}}
     end
@@ -42,8 +46,7 @@ defmodule AOC2025.Utils.Grid do
     if x < 0 or y < 0 or x > num_cols - 1 or y > num_rows - 1 do
       nil
     else
-      idx = num_cols * y + x
-      Enum.at(values, idx)
+      Map.get(values, {x, y})
     end
   end
 
