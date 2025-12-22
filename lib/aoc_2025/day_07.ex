@@ -41,7 +41,7 @@ defmodule AOC2025.Day07 do
 
     Logger.debug("start_position: #{inspect(start_position)}")
 
-    activated_splitters = simulate_beam_splitting(grid, start_position)
+    {_, activated_splitters} = simulate_beam_splitting(grid, start_position)
 
     num_splits =
       activated_splitters
@@ -53,22 +53,31 @@ defmodule AOC2025.Day07 do
 
   @impl AOCDay
   def part_2(input) do
+    {:ok, grid} = Grid.parse_grid(TachyonManifoldCell, input)
+    Logger.debug("#{grid}")
+
+    start_position =
+      Grid.find_position(grid, fn value -> value == %TachyonManifoldCell{value: :start} end)
+
+    {num_paths, _visited} = simulate_beam_splitting(grid, start_position)
+    Integer.to_string(num_paths + 1)
   end
 
-  def simulate_beam_splitting(grid, {x, y} = beam_position, visited \\ MapSet.new()) do
-    if MapSet.member?(visited, beam_position) do
-      MapSet.new([nil])
+  defp simulate_beam_splitting(grid, {x, y} = beam_position, visited \\ Map.new()) do
+    if Map.has_key?(visited, beam_position) do
+      {Map.get(visited, beam_position), visited}
     else
       case Grid.get(grid, x, y) do
         nil ->
-          MapSet.new([nil])
+          {0, visited}
 
         %TachyonManifoldCell{value: :splitter} ->
-          visited = MapSet.put(visited, {x, y})
-          left_side = simulate_beam_splitting(grid, {x - 1, y}, visited)
-          visited = MapSet.union(visited, left_side)
-          right_side = simulate_beam_splitting(grid, {x + 1, y}, visited)
-          MapSet.union(visited, right_side)
+          {left_side, left_vistied} = simulate_beam_splitting(grid, {x - 1, y}, visited)
+          vistied = Map.merge(visited, left_vistied)
+          {right_side, right_visited} = simulate_beam_splitting(grid, {x + 1, y}, vistied)
+          visited = Map.merge(visited, right_visited)
+          visited = Map.put(visited, {x, y}, 1 + left_side + right_side)
+          {1 + left_side + right_side, visited}
 
         %TachyonManifoldCell{value: v} when v in [:start, :empty] ->
           simulate_beam_splitting(grid, {x, y + 1}, visited)
