@@ -1,4 +1,5 @@
 defmodule AOC2025.Day05 do
+  require Logger
   @behaviour AOCDay
 
   @impl AOCDay
@@ -18,8 +19,17 @@ defmodule AOC2025.Day05 do
   end
 
   @impl AOCDay
-  def part_2(_input) do
-    "hi"
+  def part_2(input) do
+    {fresh_ingredient_ranges, _} = parse_input(input)
+
+    compressed_ranges =
+      compress_range_list(fresh_ingredient_ranges)
+
+    Logger.debug("compressed ranges: #{inspect(compressed_ranges)}")
+
+    compressed_ranges
+    |> Enum.reduce(0, fn rng, acc -> acc + Range.size(rng) end)
+    |> Integer.to_string()
   end
 
   defp parse_input(input) do
@@ -35,7 +45,9 @@ defmodule AOC2025.Day05 do
   end
 
   defp parse_fresh_ingredient_ranges(input) do
-    String.split(input, "\n") |> Stream.map(&parse_ingredient_range/1) |> Enum.to_list()
+    String.split(input, "\n")
+    |> Stream.map(&parse_ingredient_range/1)
+    |> Enum.to_list()
   end
 
   defp parse_ingredient_range(ingredient_range) do
@@ -53,4 +65,33 @@ defmodule AOC2025.Day05 do
     |> Stream.map(&String.to_integer/1)
     |> Enum.to_list()
   end
+
+  defp compress_range_list(ranges) do
+    ordered_ranges =
+      ranges
+      |> Stream.flat_map(fn first..last//1 ->
+        [{first, :first}, {last, :last}]
+      end)
+      |> Enum.sort()
+
+    initial_state = {[], 0}
+
+    {compressed, 0} =
+      ordered_ranges
+      |> Enum.reduce(initial_state, &build_compressed_list/2)
+
+    compressed
+    |> Enum.reverse()
+    |> Enum.chunk_every(2)
+    |> Enum.map(fn [{first, :first}, {last, :last}] -> first..last end)
+  end
+
+  defp build_compressed_list({value, :first}, {compressed, 0}),
+    do: {[{value, :first} | compressed], 1}
+
+  defp build_compressed_list({value, :last}, {compressed, 1}),
+    do: {[{value, :last} | compressed], 0}
+
+  defp build_compressed_list({_, :first}, {compressed, val}), do: {compressed, val + 1}
+  defp build_compressed_list({_, :last}, {compressed, val}), do: {compressed, val - 1}
 end
