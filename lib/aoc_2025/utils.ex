@@ -50,12 +50,21 @@ defmodule AOC2025.Utils.Grid do
     end
   end
 
+  def find_position(%__MODULE__{values: values}, fun) do
+    values |> Enum.find(fn {_, value} -> fun.(value) end) |> elem(0)
+  end
+
   defimpl String.Chars do
     alias AOC2025.Utils.Grid
 
-    def to_string(%Grid{num_cols: num_cols, values: values}) do
+    def to_string(%Grid{num_rows: num_rows, num_cols: num_cols} = grid) do
+      points =
+        0..(num_rows - 1)
+        |> Enum.flat_map(fn y -> Enum.map(0..(num_cols - 1), fn x -> {x, y} end) end)
+        |> Enum.map(fn {x, y} -> Grid.get(grid, x, y) end)
+
       "\n" <>
-        (values
+        (points
          |> Enum.map(&String.Chars.to_string/1)
          |> Enum.chunk_every(num_cols)
          |> Enum.join("\n"))
