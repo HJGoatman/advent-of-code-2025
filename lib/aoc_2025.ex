@@ -44,7 +44,7 @@ defmodule AOC2025 do
     run_part = fn p ->
       if part && part != p,
         do: {:skipped, nil},
-        else: timed(fn -> apply(mod, :"part_#{p}", [input]) end)
+        else: timed(fn -> apply(mod, :"part_#{p}", [input, input_type]) end)
     end
 
     res1 = run_part.(1)
@@ -125,6 +125,6 @@ defmodule AOC2025 do
 end
 
 defmodule AOCDay do
-  @callback part_1(String.t()) :: String.t()
-  @callback part_2(String.t()) :: String.t()
+  @callback part_1(String.t(), Atom.t()) :: String.t()
+  @callback part_2(String.t(), Atom.t()) :: String.t()
 end
