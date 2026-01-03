@@ -119,6 +119,18 @@ defmodule AOC2025.Day08 do
     0..(length(junction_box_positions) - 1) |> Range.to_list() |> Map.from_keys([])
   end
 
+  defp is_connected?(connections, a, b, visited \\ [])
+
+  defp is_connected?(_connections, a, b, _visited) when a == b, do: true
+
+  defp is_connected?(connections, a, b, visited) do
+    current_connections_a = connections |> Map.get(a)
+
+    current_connections_a
+    |> Stream.filter(fn connection -> connection not in visited end)
+    |> Enum.any?(fn connection -> is_connected?(connections, connection, b, [a | visited]) end)
+  end
+
   defp find_connections(_connections, _junctions, _visitied \\ [])
 
   defp find_connections(connections, junction, visited) do
@@ -142,6 +154,22 @@ defmodule AOC2025.Day08 do
     new_connections = add_connection(connections, junction_box_a, junction_box_b)
 
     make_connections(new_connections, remaining_wires)
+  end
+
+  defp make_connection(connections, []), do: {connections, [], nil}
+
+  defp make_connection(connections, wires) do
+    [wire | remaining_wires] = wires
+    {junction_box_a, junction_box_b} = wire
+
+    is_a_connected_to_b = is_connected?(connections, junction_box_a, junction_box_b)
+
+    if not is_a_connected_to_b do
+      new_connections = add_connection(connections, junction_box_a, junction_box_b)
+      {new_connections, remaining_wires, wire}
+    else
+      make_connection(connections, remaining_wires)
+    end
   end
 
   defp add_connection(connections, junction_box_a, junction_box_b) do
@@ -178,16 +206,8 @@ defmodule AOC2025.Day08 do
   end
 
   defp connect_all_junctions(connections, wires) do
-    connected_to_first = find_connections(connections, 0)
+    {new_connections, new_wires, connection_made} = make_connection(connections, wires)
 
-    if length(connected_to_first) == map_size(connections) do
-      []
-    else
-      [wire | remaining_wires] = wires
-      {junction_box_a, junction_box_b} = wire
-
-      new_connections = add_connection(connections, junction_box_a, junction_box_b)
-      [wire | connect_all_junctions(new_connections, remaining_wires)]
-    end
+    [connection_made | connect_all_junctions(new_connections, new_wires)]
   end
 end
