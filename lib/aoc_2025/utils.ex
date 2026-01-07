@@ -70,4 +70,45 @@ defmodule AOC2025.Utils.Grid do
          |> Enum.join("\n"))
     end
   end
+
+  def breadth_first_search(initial_value, directions) do
+    Stream.resource(
+      fn ->
+        queue = :queue.new()
+        queue = :queue.in(initial_value, queue)
+
+        visited = MapSet.new()
+        {queue, visited}
+      end,
+      fn {queue, visited} ->
+        case :queue.out(queue) do
+          {{:value, value}, queue} ->
+            if not MapSet.member?(visited, value) do
+              visited = MapSet.put(visited, value)
+
+              queue =
+                directions
+                |> Enum.reduce(queue, fn direction, queue ->
+                  next_value = get_next(value, direction)
+
+                  :queue.in(next_value, queue)
+                end)
+
+              {[value], {queue, visited}}
+            else
+              {[], {queue, visited}}
+            end
+
+          {:empty, queue} ->
+            {:halt, queue}
+        end
+      end,
+      fn _queue -> nil end
+    )
+  end
+
+  defp get_next({x, y}, :left), do: {x - 1, y}
+  defp get_next({x, y}, :up), do: {x, y + 1}
+  defp get_next({x, y}, :right), do: {x + 1, y}
+  defp get_next({x, y}, :down), do: {x, y - 1}
 end
